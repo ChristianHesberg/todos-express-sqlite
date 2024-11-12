@@ -2,25 +2,41 @@ var express = require('express');
 var router = express.Router();
 var db = require('../db');
 
+function mapRows(res, rows){
+  var todos = rows.map(function(row) {
+    return {
+      id: row.id,
+      title: row.title,
+      completed: row.completed == 1 ? true : false,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      url: '/' + row.id
+    }
+  });
+  res.locals.todos = todos;
+  res.locals.activeCount = todos.filter(function(todo) { return !todo.completed; }).length;
+  res.locals.completedCount = todos.length - res.locals.activeCount;
+}
+
 function fetchTodos(req, res, next) {
   db.all('SELECT * FROM todos', [], function(err, rows) {
     if (err) { return next(err); }
-    
-    var todos = rows.map(function(row) {
-      return {
-        id: row.id,
-        title: row.title,
-        completed: row.completed == 1 ? true : false,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        url: '/' + row.id
-      }
-    });
-    res.locals.todos = todos;
-    res.locals.activeCount = todos.filter(function(todo) { return !todo.completed; }).length;
-    res.locals.completedCount = todos.length - res.locals.activeCount;
+    mapRows(res, rows);
     next();
   });
+}
+
+function fetchTodosByTitle(req, res, next) {
+  if(!req.query.q) return res.status(400).send('Missing query parameter q');
+
+  const sql = 'SELECT * FROM todos WHERE title LIKE ?';  
+  const params = [`%${req.query.q}%`];
+
+  db.all(sql, params, function(err, rows){
+    if (err) { return next(err); }
+    mapRows(res, rows);
+    next();
+  })
 }
 
 /* GET home page. */
@@ -38,6 +54,11 @@ router.get('/active', fetchTodos, function(req, res, next) {
 router.get('/completed', fetchTodos, function(req, res, next) {
   res.locals.todos = res.locals.todos.filter(function(todo) { return todo.completed; });
   res.locals.filter = 'completed';
+  res.render('index');
+});
+
+router.get('/search', fetchTodos, function(req, res, next) {
+  //TODO implement filter logic
   res.render('index');
 });
 
