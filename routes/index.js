@@ -13,7 +13,8 @@ function mapRows(res, rows){
       completed: row.completed == 1 ? true : false,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      url: '/' + row.id
+      url: '/' + row.id,
+      synchronized: row.synchronized
     }
   });
   res.locals.todos = todos;
@@ -38,6 +39,28 @@ function fetchTodosByTitle(req, res, next) {
     mapRows(res, rows);
     next();
   })
+}
+
+function insertToDo(req, res, next, synchronized){
+  db.run('INSERT INTO todos (title, completed, created_at, synchronized) VALUES (?, ?, ?, ?)', [
+    req.body.title,
+    req.body.completed == true ? 1 : null,
+    new Date().toISOString(),
+    synchronized
+  ], function(err) {
+    if (err) { return next(err); }
+    req.body.id = this.lastID;
+    next();
+  });
+}
+
+function updateSynchronizedStatus(req, synchronized){
+  db.run('UPDATE todos SET synchronized = ? WHERE id = ?', [
+    synchronized,
+    req.body.id
+  ], function(err) {
+    if (err) { console.error('Error updating synchronization status', err) }
+  });
 }
 
 /* GET home page. */
@@ -70,15 +93,7 @@ router.post('/', function(req, res, next) {
   if (req.body.title !== '') { return next(); }
   return res.redirect('/' + (req.body.filter || ''));
 }, function(req, res, next) {
-  db.run('INSERT INTO todos (title, completed, created_at) VALUES (?, ?, ?)', [
-    req.body.title,
-    req.body.completed == true ? 1 : null,
-    new Date().toISOString()
-  ], function(err) {
-    if (err) { return next(err); }
-    req.body.id = this.lastID;
-    next();
-  });
+  insertToDo(req, res, next, 0)
 }, function (req, res, next){
   axios.post(postmanApiRoute, {
     id: req.body.id,
@@ -86,11 +101,10 @@ router.post('/', function(req, res, next) {
     completed: req.body.completed == 1 ? true : false,
     created_at: new Date().toISOString(),
     url: '/' + req.body.id
-  }).then(response => {
-    console.log('response:', response.data);
+  }).then(() => {
+    updateSynchronizedStatus(req, 1);
   }).catch(error => {
     console.log('error:', error);
-    next(error);
   })
   return res.redirect('/' + (req.body.filter || ''));
 });
