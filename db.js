@@ -9,7 +9,8 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS todos ( \
     id INTEGER PRIMARY KEY, \
     title TEXT NOT NULL, \
-    completed INTEGER \
+    completed INTEGER, \
+    created_at DATETIME NOT NULL \
   )");
 });
 

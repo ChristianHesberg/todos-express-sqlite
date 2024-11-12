@@ -11,6 +11,7 @@ function fetchTodos(req, res, next) {
         id: row.id,
         title: row.title,
         completed: row.completed == 1 ? true : false,
+        created_at: row.created_at,
         url: '/' + row.id
       }
     });
@@ -46,9 +47,10 @@ router.post('/', function(req, res, next) {
   if (req.body.title !== '') { return next(); }
   return res.redirect('/' + (req.body.filter || ''));
 }, function(req, res, next) {
-  db.run('INSERT INTO todos (title, completed) VALUES (?, ?)', [
+  db.run('INSERT INTO todos (title, completed, created_at) VALUES (?, ?, ?)', [
     req.body.title,
-    req.body.completed == true ? 1 : null
+    req.body.completed == true ? 1 : null,
+    new Date().toISOString()
   ], function(err) {
     if (err) { return next(err); }
     return res.redirect('/' + (req.body.filter || ''));

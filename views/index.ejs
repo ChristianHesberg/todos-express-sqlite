@@ -29,6 +29,7 @@
 				</form>
 				<ul class="todo-list">
 					<% todos.forEach(function(todo) { %>
+						<% console.log(todo) %>
 					<li <%- todo.completed ? 'class="completed"' : '' %>>
 						<form action="<%= todo.url %>" method="post">
 							<div class="view">
