@@ -11,7 +11,8 @@ db.serialize(function() {
     title TEXT NOT NULL, \
     completed INTEGER, \
     created_at DATETIME NOT NULL, \
-    updated_at DATETIME \
+    updated_at DATETIME, \
+    synchronized INTEGER \
   )");
 });
 

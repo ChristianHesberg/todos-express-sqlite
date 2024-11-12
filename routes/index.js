@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../db');
+var axios = require('axios');
+
+const postmanApiRoute = 'https://postman-echo.com/post';
 
 function mapRows(res, rows){
   var todos = rows.map(function(row) {
@@ -27,8 +30,6 @@ function fetchTodos(req, res, next) {
 }
 
 function fetchTodosByTitle(req, res, next) {
-  if(!req.query.q) return res.status(400).send('Missing query parameter q');
-
   const sql = 'SELECT * FROM todos WHERE title LIKE ?';  
   const params = [`%${req.query.q}%`];
 
@@ -75,8 +76,23 @@ router.post('/', function(req, res, next) {
     new Date().toISOString()
   ], function(err) {
     if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
+    req.body.id = this.lastID;
+    next();
   });
+}, function (req, res, next){
+  axios.post(postmanApiRoute, {
+    id: req.body.id,
+    title: req.body.title,
+    completed: req.body.completed == 1 ? true : false,
+    created_at: new Date().toISOString(),
+    url: '/' + req.body.id
+  }).then(response => {
+    console.log('response:', response.data);
+  }).catch(error => {
+    console.log('error:', error);
+    next(error);
+  })
+  return res.redirect('/' + (req.body.filter || ''));
 });
 
 router.post('/:id(\\d+)', function(req, res, next) {
