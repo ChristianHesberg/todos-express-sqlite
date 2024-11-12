@@ -15,5 +15,3 @@ services:
       NODE_ENV: production
     ports:
       - 3000:3000
-    volumes:  
-      - ./var/db:/usr/src/app/var/db  
