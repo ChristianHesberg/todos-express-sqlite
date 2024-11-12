@@ -11,6 +11,13 @@
 		<section class="todoapp">
 			<header class="header">
 				<h1>todos</h1>
+				<form action="/search" method="get">  
+					<input class="search-todo" name="q" placeholder="Search todos" autofocus>  
+					<button type="submit">Search</button>  
+					<% if (filter) { %>
+						<input type="hidden" name="filter" value="<%= filter %>"/>
+					<% } %>
+				</form> 
 				<form action="/" method="post">
 					<input class="new-todo" name="title" placeholder="What needs to be done?" autofocus>
 					<% if (filter) { %>

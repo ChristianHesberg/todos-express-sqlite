@@ -57,8 +57,8 @@ router.get('/completed', fetchTodos, function(req, res, next) {
   res.render('index');
 });
 
-router.get('/search', fetchTodos, function(req, res, next) {
-  //TODO implement filter logic
+router.get('/search', fetchTodosByTitle, function(req, res, next) {
+  res.locals.filter = null;
   res.render('index');
 });
 
