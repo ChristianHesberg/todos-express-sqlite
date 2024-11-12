@@ -10,7 +10,8 @@ db.serialize(function() {
     id INTEGER PRIMARY KEY, \
     title TEXT NOT NULL, \
     completed INTEGER, \
-    created_at DATETIME NOT NULL \
+    created_at DATETIME NOT NULL, \
+    updated_at DATETIME \
   )");
 });
 

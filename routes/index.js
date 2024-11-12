@@ -12,6 +12,7 @@ function fetchTodos(req, res, next) {
         title: row.title,
         completed: row.completed == 1 ? true : false,
         created_at: row.created_at,
+        updated_at: row.updated_at,
         url: '/' + row.id
       }
     });
@@ -69,9 +70,10 @@ router.post('/:id(\\d+)', function(req, res, next) {
     return res.redirect('/' + (req.body.filter || ''));
   });
 }, function(req, res, next) {
-  db.run('UPDATE todos SET title = ?, completed = ? WHERE id = ?', [
+  db.run('UPDATE todos SET title = ?, completed = ?, updated_at = ? WHERE id = ?', [
     req.body.title,
     req.body.completed !== undefined ? 1 : null,
+    new Date().toISOString(),
     req.params.id
   ], function(err) {
     if (err) { return next(err); }
@@ -89,8 +91,9 @@ router.post('/:id(\\d+)/delete', function(req, res, next) {
 });
 
 router.post('/toggle-all', function(req, res, next) {
-  db.run('UPDATE todos SET completed = ?', [
-    req.body.completed !== undefined ? 1 : null
+  db.run('UPDATE todos SET completed = ?, updated_at = ?', [
+    req.body.completed !== undefined ? 1 : null,
+    new Date().toISOString()
   ], function(err) {
     if (err) { return next(err); }
     return res.redirect('/' + (req.body.filter || ''));
