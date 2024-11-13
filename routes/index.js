@@ -4,6 +4,8 @@ var db = require('../db');
 var axios = require('axios');
 
 const postmanApiRoute = 'https://postman-echo.com/post';
+const retryLimit = 3;
+const retryDelayInMs = 2000;
 
 function mapRows(res, rows){
   var todos = rows.map(function(row) {
@@ -63,6 +65,25 @@ function updateSynchronizedStatus(req, synchronized){
   });
 }
 
+async function postToApi(req, retries, delay){
+  axios.post(postmanApiRoute, {
+    id: req.body.id,
+    title: req.body.title,
+    completed: req.body.completed == 1 ? true : false,
+    created_at: new Date().toISOString(),
+    url: '/' + req.body.id
+  }).then(() => {
+    updateSynchronizedStatus(req, 1);
+  }).catch(async error => {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+      postToApi(req, retries - 1, delay * 2);
+    } else {
+      console.error('Retries failed with error: ', error);
+    }
+  })
+}
+
 /* GET home page. */
 router.get('/', fetchTodos, function(req, res, next) {
   res.locals.filter = null;
@@ -95,17 +116,7 @@ router.post('/', function(req, res, next) {
 }, function(req, res, next) {
   insertToDo(req, res, next, 0)
 }, function (req, res, next){
-  axios.post(postmanApiRoute, {
-    id: req.body.id,
-    title: req.body.title,
-    completed: req.body.completed == 1 ? true : false,
-    created_at: new Date().toISOString(),
-    url: '/' + req.body.id
-  }).then(() => {
-    updateSynchronizedStatus(req, 1);
-  }).catch(error => {
-    console.log('error:', error);
-  })
+  postToApi(req, retryLimit, retryDelayInMs);
   return res.redirect('/' + (req.body.filter || ''));
 });
 
