@@ -1,6 +1,9 @@
 var repo = require('../repo/todoRepo');
+var axios = require('axios');
 
-export function fetchTodos(req, res, next) {
+const postmanApiRoute = 'https://postman-echo.com/post';
+
+function fetchTodos(req, res, next) {
     repo.fetchTodos((err, rows) => {
         if (err) { return next(err); }
         mapRows(res, rows);
@@ -8,7 +11,7 @@ export function fetchTodos(req, res, next) {
     })
 }
 
-export function fetchTodosByTitle(req, res, next) {
+function fetchTodosByTitle(req, res, next) {
     repo.fetchTodosByTitle(req.query.q, (err, rows) => {
         if (err) { return next(err); }
         mapRows(res, rows);
@@ -16,7 +19,7 @@ export function fetchTodosByTitle(req, res, next) {
     })
 }
 
-export function insertToDo(req, res, next, synchronized){
+function insertToDo(req, res, next, synchronized){
     const todo = {
         title: req.body.title,
         completed: req.body.completed == true ? 1 : null,
@@ -26,18 +29,18 @@ export function insertToDo(req, res, next, synchronized){
     repo.insertToDo(todo, (err, lastID) => {
         if (err) { return next(err); }
         req.body.id = lastID;
+        console.log(lastID);
         next();
     })
 }
 
-export function updateSynchronizedStatus(req, synchronized){
+function updateSynchronizedStatus(req, synchronized){
     repo.updateSynchronizedStatus(req.body.id, synchronized, (err) => {
         if (err) { return next(err); }
-        next();
     })
 }
 
-export function mapRows(res, rows){
+function mapRows(res, rows){
     var todos = rows.map(function(row) {
       return {
         id: row.id,
@@ -54,7 +57,7 @@ export function mapRows(res, rows){
     res.locals.completedCount = todos.length - res.locals.activeCount;
 }
 
-export async function postToApi(req, retries, delay){
+async function postToApi(req, retries, delay){
     axios.post(postmanApiRoute, {
       id: req.body.id,
       title: req.body.title,
@@ -72,3 +75,10 @@ export async function postToApi(req, retries, delay){
       }
     })
   }
+
+  module.exports = {  
+    fetchTodos,  
+    fetchTodosByTitle,  
+    insertToDo,
+    postToApi  
+};
