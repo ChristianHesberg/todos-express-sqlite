@@ -37,7 +37,6 @@ export function updateSynchronizedStatus(req, synchronized){
     })
 }
 
-
 export function mapRows(res, rows){
     var todos = rows.map(function(row) {
       return {
