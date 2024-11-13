@@ -29,7 +29,6 @@ function insertToDo(req, res, next, synchronized){
     repo.insertToDo(todo, (err, lastID) => {
         if (err) { return next(err); }
         req.body.id = lastID;
-        console.log(lastID);
         next();
     })
 }
