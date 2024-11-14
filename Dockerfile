@@ -29,7 +29,7 @@ COPY . .
 
 # make the db file and give user read/write rights
 RUN mkdir -p var/db
-RUN chown -R node var/db  
+RUN chown -R node var/db
 
 # Run the application as a non-root user.
 USER node
