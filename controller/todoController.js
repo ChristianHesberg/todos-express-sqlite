@@ -19,11 +19,11 @@ function fetchTodosByTitle(req, res, next) {
     })
 }
 
-function insertToDo(req, res, next, synchronized){
+function insertToDo(req, res, next){
     const todo = {
         title: req.body.title,
         completed: req.body.completed == true ? 1 : null,
-        synchronized: synchronized
+        synchronized: 0
     };
 
     repo.insertToDo(todo, (err, lastID) => {
@@ -56,7 +56,7 @@ function mapRows(res, rows){
     res.locals.completedCount = todos.length - res.locals.activeCount;
 }
 
-async function postToApi(req, retries, delay){
+async function postToPostmanApi(req, retries, delay){
     axios.post(postmanApiRoute, {
       id: req.body.id,
       title: req.body.title,
@@ -68,7 +68,7 @@ async function postToApi(req, retries, delay){
     }).catch(async error => {
       if (retries > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
-        postToApi(req, retries - 1, delay * 2);
+        postToPostmanApi(req, retries - 1, delay * 2);
       } else {
         console.error('Retries failed with error: ', error);
       }
@@ -79,5 +79,5 @@ async function postToApi(req, retries, delay){
     fetchTodos,  
     fetchTodosByTitle,  
     insertToDo,
-    postToApi  
+    postToPostmanApi  
 };

@@ -35,10 +35,10 @@ router.post('/', function(req, res, next) {
 }, function(req, res, next) {
   if (req.body.title !== '') { return next(); }
   return res.redirect('/' + (req.body.filter || ''));
-}, function(req, res, next) {
-  controller.insertToDo(req, res, next, 0)
-}, function (req, res, next){
-  controller.postToApi(req, retryLimit, retryDelayInMs);
+}, 
+controller.insertToDo,
+function (req, res, next){
+  controller.postToPostmanApi(req, retryLimit, retryDelayInMs);
   return res.redirect('/' + (req.body.filter || ''));
 });
 
